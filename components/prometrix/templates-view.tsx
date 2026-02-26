@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { ArrowRight, Globe, Lock, Plus } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { ArrowRight, Globe, Lock, Plus, Copy } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -33,10 +35,6 @@ interface Template {
   }
 }
 
-interface TemplatesViewProps {
-  onUseTemplate: (prompt: string) => void
-}
-
 function getAuthTokenFromCookie(): string | null {
   if (typeof document === "undefined") return null
   const match = document.cookie
@@ -46,7 +44,7 @@ function getAuthTokenFromCookie(): string | null {
   return decodeURIComponent(match.split("=")[1] ?? "")
 }
 
-export function TemplatesView({ onUseTemplate }: TemplatesViewProps) {
+export function TemplatesView() {
   const [myTemplates, setMyTemplates] = useState<Template[]>([])
   const [publicTemplates, setPublicTemplates] = useState<Template[]>([])
   const [loadingMy, setLoadingMy] = useState(false)
@@ -56,7 +54,7 @@ export function TemplatesView({ onUseTemplate }: TemplatesViewProps) {
   const [activeTab, setActiveTab] = useState<"public" | "my">("public")
 
   const [searchTerm, setSearchTerm] = useState("")
-  const [toolFilter, setToolFilter] = useState<"all" | "cursor" | "v0" | "generic">("all")
+  const [toolFilter, setToolFilter] = useState<"all" | "cursor" | "v0" | "generic" | "claude">("all")
 
   const [name, setName] = useState("")
   const [category, setCategory] = useState("")
@@ -65,6 +63,11 @@ export function TemplatesView({ onUseTemplate }: TemplatesViewProps) {
   const [techStackInput, setTechStackInput] = useState("")
   const [isPublic, setIsPublic] = useState(true)
 
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null)
+
+  const router = useRouter()
   const token = useMemo(() => getAuthTokenFromCookie(), [])
 
   const normalizedSearch = searchTerm.trim().toLowerCase()
@@ -232,6 +235,56 @@ export function TemplatesView({ onUseTemplate }: TemplatesViewProps) {
     }
   }
 
+  const handleOpenTemplate = async (templateId: string) => {
+    if (!token) {
+      toast.error("You must be logged in to view templates.")
+      return
+    }
+
+    setPreviewLoading(true)
+    setPreviewTemplate(null)
+    setPreviewOpen(true)
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/templates/${templateId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        toast.error(data?.message || "Failed to load template.")
+        setPreviewOpen(false)
+        return
+      }
+      setPreviewTemplate(data?.data ?? null)
+    } catch {
+      toast.error("Unable to load template. Please try again.")
+      setPreviewOpen(false)
+    } finally {
+      setPreviewLoading(false)
+    }
+  }
+
+  const handleCopyBasePrompt = async () => {
+    if (!previewTemplate?.basePrompt) return
+    try {
+      await navigator.clipboard.writeText(previewTemplate.basePrompt)
+      toast.success("Base prompt copied to clipboard")
+    } catch {
+      toast.error("Failed to copy base prompt")
+    }
+  }
+
+  const handleOpenInEditor = () => {
+    if (!previewTemplate) return
+    const qs = new URLSearchParams()
+    qs.set("templateId", previewTemplate._id)
+    setPreviewOpen(false)
+    router.push(`/new-prompt?${qs.toString()}`)
+  }
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <header className="flex items-center justify-between border-b border-border px-6 py-4">
@@ -295,6 +348,7 @@ export function TemplatesView({ onUseTemplate }: TemplatesViewProps) {
                   <SelectContent>
                     <SelectItem value="cursor">Cursor</SelectItem>
                     <SelectItem value="v0">v0</SelectItem>
+                    <SelectItem value="claude">Claude</SelectItem>
                     <SelectItem value="generic">Generic</SelectItem>
                   </SelectContent>
                 </Select>
@@ -452,7 +506,7 @@ export function TemplatesView({ onUseTemplate }: TemplatesViewProps) {
                       variant="ghost"
                       size="sm"
                       className="w-full justify-between text-xs text-muted-foreground hover:text-primary"
-                      onClick={() => onUseTemplate(t.basePrompt)}
+                      onClick={() => handleOpenTemplate(t._id)}
                     >
                       Use template
                       <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
@@ -519,7 +573,7 @@ export function TemplatesView({ onUseTemplate }: TemplatesViewProps) {
                       variant="ghost"
                       size="sm"
                       className="w-full justify-between text-xs text-muted-foreground hover:text-primary"
-                      onClick={() => onUseTemplate(t.basePrompt)}
+                      onClick={() => handleOpenTemplate(t._id)}
                     >
                       Use template
                       <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
@@ -530,6 +584,93 @@ export function TemplatesView({ onUseTemplate }: TemplatesViewProps) {
             )}
           </div>
         )}
+
+        <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+          <DialogContent className="max-h-[80vh] overflow-hidden">
+            <DialogHeader>
+              <DialogTitle className="text-sm">
+                {previewTemplate?.name || "Template preview"}
+              </DialogTitle>
+              <DialogDescription className="text-xs">
+                Review the template details, copy the base prompt, or open it in the editor.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="max-h-[50vh] overflow-y-auto pr-1">
+              {previewLoading ? (
+                <p className="text-xs text-muted-foreground">Loading template...</p>
+              ) : !previewTemplate ? (
+                <p className="text-xs text-muted-foreground">
+                  Unable to load template details.
+                </p>
+              ) : (
+                <div className="space-y-3 text-xs">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {previewTemplate.category && (
+                      <Badge variant="outline" className="text-[10px]">
+                        {previewTemplate.category}
+                      </Badge>
+                    )}
+                    {previewTemplate.toolMode && (
+                      <Badge variant="outline" className="text-[10px]">
+                        Tool: {previewTemplate.toolMode}
+                      </Badge>
+                    )}
+                    {previewTemplate.techStack && previewTemplate.techStack.length > 0 && (
+                      <span className="text-[10px] text-muted-foreground">
+                        Tech: {previewTemplate.techStack.join(", ")}
+                      </span>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-medium text-foreground">Base prompt</p>
+                    <div className="relative">
+                      <Textarea
+                        value={previewTemplate.basePrompt}
+                        readOnly
+                        rows={6}
+                        className="text-xs pr-10"
+                      />
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="absolute right-1 top-1 size-7 text-muted-foreground hover:text-foreground"
+                        onClick={handleCopyBasePrompt}
+                      >
+                        <Copy className="size-3.5" />
+                        <span className="sr-only">Copy base prompt</span>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <DialogFooter className="mt-2 flex items-center justify-between gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                onClick={handleCopyBasePrompt}
+                disabled={!previewTemplate?.basePrompt}
+              >
+                <Copy className="mr-1 size-3" />
+                Copy prompt
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                className="text-xs"
+                onClick={handleOpenInEditor}
+                disabled={!previewTemplate}
+              >
+                Open in editor
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )

@@ -35,6 +35,7 @@ export default function NewPromptClient({
           versions={versions}
           initialTitle={initialTitle}
           initialRawPrompt={initialPrompt}
+          selectedVersion={selectedVersion}
         />
       </div>
 

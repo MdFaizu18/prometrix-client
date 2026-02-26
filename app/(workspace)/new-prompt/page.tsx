@@ -9,7 +9,15 @@ export default function NewPromptPage({
 }) {
   const title = typeof searchParams?.title === "string" ? searchParams.title : ""
   const prompt = typeof searchParams?.prompt === "string" ? searchParams.prompt : ""
+  const templateId =
+    typeof searchParams?.templateId === "string" ? searchParams.templateId : undefined
 
-  return <NewPromptClient initialTitle={title} initialPrompt={prompt} />
+  return (
+    <NewPromptClient
+      initialTitle={title}
+      initialPrompt={prompt}
+      templateId={templateId}
+    />
+  )
 }
 

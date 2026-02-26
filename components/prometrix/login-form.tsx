@@ -171,7 +171,7 @@ export function LoginForm() {
                             Password
                         </Label>
                         <a
-                            href="#"
+                            href="/forgot-password"
                             className="text-xs text-muted-foreground transition-colors hover:text-primary"
                         >
                             Forgot password?

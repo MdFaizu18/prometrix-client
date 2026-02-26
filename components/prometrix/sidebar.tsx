@@ -136,7 +136,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
       </div>
 
       {/* Search */}
-      <div className="px-3 pb-2">
+      {/* <div className="px-3 pb-2">
         <button className="flex w-full items-center gap-2.5 rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground">
           <Search className="size-3.5" />
           <span>Search prompts...</span>
@@ -144,7 +144,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
             {"/"} 
           </kbd>
         </button>
-      </div>
+      </div> */}
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-3 pt-4">
