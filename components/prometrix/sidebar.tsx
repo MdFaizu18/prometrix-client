@@ -43,7 +43,7 @@ const navItems: { id: NavItem; label: string; icon: React.ElementType; href: str
   { id: "analytics", label: "Analytics", icon: BarChart3, href: "/analytics" },
 ]
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000/api"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://prometrix-server.vercel.app/api"
 
 function getAuthTokenFromCookie(): string | null {
   if (typeof document === "undefined") return null
