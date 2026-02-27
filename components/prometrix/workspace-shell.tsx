@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react"
 import { Menu, Sparkles } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
-import { cn } from "@/lib/utils"
 import { Sidebar } from "@/components/prometrix/sidebar"
 import { Button } from "@/components/ui/button"
+import { Sheet, SheetContent } from "@/components/ui/sheet"
 
 function hasAuthToken(): boolean {
   if (typeof document === "undefined") return false
@@ -64,22 +64,19 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
       </header>
 
       <div className="relative flex flex-1 overflow-hidden">
-        {/* Mobile Sidebar Overlay */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
+        {/* Mobile Sidebar Drawer */}
+        <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+          <SheetContent
+            side="left"
+            className="w-64 p-0"
+          >
+            <Sidebar onNavigate={() => setSidebarOpen(false)} />
+          </SheetContent>
+        </Sheet>
 
-        {/* Sidebar */}
-        <div
-          className={cn(
-            "fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-200 lg:relative lg:translate-x-0",
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          )}
-        >
-          <Sidebar onNavigate={() => setSidebarOpen(false)} />
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:block lg:w-64 lg:shrink-0">
+          <Sidebar />
         </div>
 
         {/* Main Content */}

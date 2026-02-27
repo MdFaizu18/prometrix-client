@@ -1,5 +1,5 @@
-import { AuthLayout } from "@/components/prometrix/auth-layout"
-import { ResetPasswordForm } from "@/components/prometrix/reset-password-form"
+import { Suspense } from "react"
+import ResetPasswordPageClient from "./reset-password-page-client"
 
 export const metadata = {
     title: "Reset Password - Prometrix",
@@ -7,9 +7,9 @@ export const metadata = {
 }
 
 export default function ResetPasswordPage() {
-    return (
-        <AuthLayout>
-            <ResetPasswordForm />
-        </AuthLayout>
-    )
+  return (
+    <Suspense fallback={<div className="min-h-dvh bg-background" />}>
+      <ResetPasswordPageClient />
+    </Suspense>
+  )
 }

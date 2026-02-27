@@ -26,7 +26,7 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000/api"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://prometrix-server.vercel.app/api"
 
 interface Version {
   id: number

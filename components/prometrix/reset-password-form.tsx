@@ -27,7 +27,7 @@ const PASSWORD_RULES = [
     { label: "One special character", test: (p: string) => /[^a-zA-Z0-9]/.test(p) },
 ]
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000/api"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://prometrix-server.vercel.app/api"
 
 export function ResetPasswordForm() {
     const searchParams = useSearchParams()

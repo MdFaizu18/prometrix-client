@@ -18,7 +18,7 @@ const PASSWORD_RULES = [
     { label: "One special character", test: (p: string) => /[^a-zA-Z0-9]/.test(p) },
 ]
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000/api"
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://prometrix-server.vercel.app/api"
 
 export function RegisterForm() {
     const router = useRouter()
@@ -110,7 +110,7 @@ export function RegisterForm() {
             </div>
 
             {/* Social Login */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Button
                     variant="outline"
                     className="h-10 gap-2 border-border bg-secondary text-foreground hover:bg-accent"
