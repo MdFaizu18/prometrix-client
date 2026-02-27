@@ -10,6 +10,9 @@ const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono'
 export const metadata: Metadata = {
   title: 'Prometrix - AI Prompt Engineering Command Center',
   description: 'An AI-powered prompt engineering command center for developers. Write, refine, and optimize prompts with precision.',
+  icons: {
+    icon: '/favicon.png',
+  },
 }
 
 export const viewport: Viewport = {
